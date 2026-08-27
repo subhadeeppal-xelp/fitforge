@@ -1192,7 +1192,7 @@
           '<input type="text" id="authUser" placeholder="your username">'+
           '<label>Password</label>'+
           '<input type="password" id="authPass" placeholder="'+(isLogin?'********':'min. 8 characters')+'">'+
-          '<button class="btn" onclick="App.submitAuth()">'+(isLogin?'Log In':'Create Account')+'</button>'+
+          '<button class="btn" onclick="App.submitAuth()"'+(state.authBusy?' disabled':'')+'>'+(state.authBusy?'Please wait…':(isLogin?'Log In':'Create Account'))+'</button>'+
           (state.error ? '<div class="error">'+esc(state.error)+'</div>' : '')+
           '<div class="hint">'+(isLogin ? 'Log in with your username and password.' : 'We\'ll email you a code to verify your account before you can log in.')+'</div>'+
         '</div>'+
@@ -1224,11 +1224,15 @@
     logout: doLogout,
     setAuthTab: function(tab){ state.authTab = tab; state.error=''; state.info=''; render(); },
     submitAuth: function(){
+      if(state.authBusy) return;
       var u = el('authUser').value, p = el('authPass').value;
-      if(state.authTab === 'login'){ doLogin(u,p); }
+      state.authBusy = true;
+      render();
+      var done = function(){ state.authBusy = false; };
+      if(state.authTab === 'login'){ doLogin(u,p).then(done, done); }
       else{
         var fullName = el('authFullName').value, email = el('authEmail').value;
-        doSignup(u, fullName, email, p);
+        doSignup(u, fullName, email, p).then(done, done);
       }
     },
     submitVerify: function(){
