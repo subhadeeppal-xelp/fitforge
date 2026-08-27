@@ -1,7 +1,7 @@
 {
   "name": "fitforge-server",
   "version": "1.0.0",
-  "description": "FitForge backend — JWT auth, Gmail SMTP email verification, MySQL storage",
+  "description": "FitForge backend — JWT auth, Resend API email verification, MySQL storage",
   "main": "src/index.js",
   "type": "commonjs",
   "scripts": {
@@ -16,8 +16,7 @@
     "express": "^4.19.2",
     "express-rate-limit": "^7.4.0",
     "jsonwebtoken": "^9.0.2",
-    "mysql2": "^3.11.3",
-    "nodemailer": "^6.9.15"
+    "mysql2": "^3.11.3"
   },
   "engines": {
     "node": ">=18"
