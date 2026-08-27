@@ -1228,7 +1228,7 @@
       var u = el('authUser').value, p = el('authPass').value;
       state.authBusy = true;
       render();
-      var done = function(){ state.authBusy = false; };
+      var done = function(){ state.authBusy = false; render(); };
       if(state.authTab === 'login'){ doLogin(u,p).then(done, done); }
       else{
         var fullName = el('authFullName').value, email = el('authEmail').value;
