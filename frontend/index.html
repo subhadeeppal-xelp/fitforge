@@ -1226,14 +1226,16 @@
     submitAuth: function(){
       if(state.authBusy) return;
       var u = el('authUser').value, p = el('authPass').value;
+      var fullName = '', email = '';
+      if(state.authTab !== 'login'){
+        fullName = el('authFullName').value;
+        email = el('authEmail').value;
+      }
       state.authBusy = true;
       render();
       var done = function(){ state.authBusy = false; render(); };
       if(state.authTab === 'login'){ doLogin(u,p).then(done, done); }
-      else{
-        var fullName = el('authFullName').value, email = el('authEmail').value;
-        doSignup(u, fullName, email, p).then(done, done);
-      }
+      else{ doSignup(u, fullName, email, p).then(done, done); }
     },
     submitVerify: function(){
       var code = el('authCode').value.trim();
