@@ -1,0 +1,1452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>FITFORGE — Fitness Tracker</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#14171A">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #14171A;
+    --surface: #1E2226;
+    --surface-2: #262B30;
+    --line: #33393E;
+    --gold: #E8AC3D;
+    --green: #6FCF97;
+    --red: #E8643D;
+    --blue: #5FA8E8;
+    --text: #F2EFE9;
+    --muted: #8B9198;
+    --radius: 14px;
+    --app-max: 460px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;}
+  html,body{
+    background: var(--bg);
+    color: var(--text);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  #app{
+    max-width: var(--app-max);
+    margin: 0 auto;
+    min-height: 100vh;
+    position: relative;
+    padding-bottom: 84px;
+    background:
+      radial-gradient(circle at 20px 20px, rgba(255,255,255,0.02) 1px, transparent 1px) 0 0/20px 20px,
+      var(--bg);
+  }
+  .display{font-family:'Bebas Neue',sans-serif; letter-spacing: 0.5px;}
+  .mono{font-family:'Space Mono',monospace;}
+  h1,h2,h3{margin:0; font-family:'Bebas Neue',sans-serif; letter-spacing:0.5px;}
+  .topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 20px 20px 10px 20px;
+  }
+  .topbar h1{font-size:30px; color:var(--gold);}
+  .topbar .sub{color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:1.5px;}
+  .logout-btn{
+    background:none; border:1px solid var(--line); color:var(--muted);
+    padding:6px 12px; border-radius:20px; font-size:11px; cursor:pointer;
+    text-transform:uppercase; letter-spacing:1px;
+  }
+  .screen{padding: 6px 20px 20px 20px;}
+  .card{
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 14px;
+  }
+  .card h3{font-size:18px; margin-bottom:10px; color:var(--text);}
+  .back-row{display:flex; align-items:center; gap:10px; margin-bottom:10px;}
+  .back-btn{
+    background:var(--surface-2); border:1px solid var(--line); color:var(--text);
+    border-radius:8px; padding:6px 12px; cursor:pointer; font-size:13px;
+  }
+  label{
+    display:block; font-size:11px; text-transform:uppercase; letter-spacing:1px;
+    color:var(--muted); margin: 10px 0 6px 0;
+  }
+  input[type=text], input[type=number], input[type=password], select, input[type=date]{
+    width:100%; background:var(--surface-2); border:1px solid var(--line); color:var(--text);
+    padding:11px 12px; border-radius:10px; font-size:15px; font-family:'Inter',sans-serif;
+  }
+  input:focus, select:focus{outline:2px solid var(--gold); outline-offset:1px;}
+  .yn-row{display:flex; gap:10px; margin-top:6px;}
+  .yn-btn{
+    flex:1; padding:12px; border-radius:10px; border:1px solid var(--line);
+    background:var(--surface-2); color:var(--text); font-weight:700; cursor:pointer;
+    text-transform:uppercase; letter-spacing:1px; font-size:13px;
+  }
+  .yn-btn.active-yes{background:rgba(232,100,61,0.18); border-color:var(--red); color:var(--red);}
+  .yn-btn.active-no{background:rgba(111,207,151,0.18); border-color:var(--green); color:var(--green);}
+  .btn{
+    width:100%; padding:13px; border-radius:10px; border:none; margin-top:14px;
+    background:var(--gold); color:#1A1502; font-weight:800; font-size:14px;
+    text-transform:uppercase; letter-spacing:1px; cursor:pointer;
+  }
+  .btn:active{transform: translateY(1px);}
+  .btn-outline{
+    background:none; border:1px solid var(--line); color:var(--text);
+  }
+  .btn-secondary{
+    width:100%; padding:13px; border-radius:10px; margin-top:10px;
+    background:none; border:1px solid var(--line); color:var(--text); font-weight:700; font-size:13px;
+    text-transform:uppercase; letter-spacing:1px; cursor:pointer;
+  }
+  .btn-secondary:active{transform: translateY(1px);}
+  .btn-sm{width:auto; padding:8px 14px; margin-top:0; font-size:12px;}
+  .error{color:var(--red); font-size:13px; margin-top:10px;}
+  .ok{color:var(--green); font-size:13px; margin-top:10px;}
+  .hint{color:var(--muted); font-size:12px; margin-top:8px;}
+
+  /* Login */
+  .login-wrap{
+    min-height:100vh; display:flex; flex-direction:column; justify-content:center;
+    padding: 30px; max-width:var(--app-max); margin:0 auto;
+  }
+  .brand{text-align:center; margin-bottom:34px;}
+  .brand .mark{
+    display:inline-flex; align-items:center; justify-content:center;
+    width:64px;height:64px;border-radius:16px;
+    background:var(--surface); border:1px solid var(--gold);
+    font-family:'Bebas Neue',sans-serif; font-size:30px; color:var(--gold); margin-bottom:14px;
+  }
+  .brand h1{font-size:38px; color:var(--text); letter-spacing:1px;}
+  .brand p{color:var(--muted); font-size:13px; margin-top:4px; text-transform:uppercase; letter-spacing:1.5px;}
+  .tabswitch{display:flex; margin-bottom:16px; border:1px solid var(--line); border-radius:10px; overflow:hidden;}
+  .tabswitch button{
+    flex:1; padding:10px; background:var(--surface); color:var(--muted); border:none; cursor:pointer;
+    text-transform:uppercase; font-size:12px; letter-spacing:1px; font-weight:700;
+  }
+  .tabswitch button.active{background:var(--gold); color:#1A1502;}
+
+  /* Scoreboard */
+  .scoreboard{
+    background: linear-gradient(180deg, var(--surface-2), var(--surface));
+    border:1px solid var(--line); border-radius: var(--radius);
+    padding: 22px 16px; text-align:center; margin-bottom:14px;
+  }
+  .scoreboard .label{color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:2px;}
+  .digits{display:flex; justify-content:center; gap:6px; margin:10px 0 4px 0;}
+  .digit{
+    background:#0D0F11; border:1px solid var(--line); border-radius:6px;
+    width:38px; height:52px; display:flex; align-items:center; justify-content:center;
+    font-family:'Space Mono',monospace; font-size:30px; color:var(--gold);
+    box-shadow: inset 0 -2px 0 rgba(0,0,0,0.4);
+  }
+  .stat-row{display:flex; gap:10px; margin-top:14px; flex-wrap:wrap;}
+  .stat-box{flex:1; min-width:80px; background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:12px; text-align:center;}
+  .stat-box .n{font-family:'Bebas Neue',sans-serif; font-size:24px; color:var(--green);}
+  .stat-box .n.red{color:var(--red);}
+  .stat-box .n.blue{color:var(--blue);}
+  .stat-box .n.gold{color:var(--gold);}
+  .stat-box .l{color:var(--muted); font-size:10px; text-transform:uppercase; letter-spacing:1px; margin-top:2px;}
+
+  /* Banner / motivation */
+  .banner{
+    background: linear-gradient(135deg, rgba(232,172,61,0.14), rgba(232,172,61,0.03));
+    border:1px solid var(--gold); border-radius:var(--radius); padding:14px 16px; margin-bottom:14px;
+  }
+  .banner .tag{color:var(--gold); font-size:10px; text-transform:uppercase; letter-spacing:1.5px; font-weight:700;}
+  .banner p{margin:6px 0 0 0; font-size:14px; line-height:1.4;}
+
+  .streak-row{display:flex; gap:10px; margin-bottom:14px;}
+  .streak-box{
+    flex:1; background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    padding:14px; text-align:center;
+  }
+  .streak-box .fire{font-size:22px;}
+  .streak-box .n{font-family:'Bebas Neue',sans-serif; font-size:26px; color:var(--gold);}
+  .streak-box .l{color:var(--muted); font-size:10px; text-transform:uppercase; letter-spacing:1px;}
+
+  /* Entry list */
+  .entry{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:11px 0; border-bottom:1px solid var(--line);
+  }
+  .entry:last-child{border-bottom:none;}
+  .entry .main{font-size:14px; font-weight:600;}
+  .entry .sub{font-size:11px; color:var(--muted); margin-top:2px;}
+  .pts{font-family:'Space Mono',monospace; font-weight:700; font-size:14px;}
+  .pts.pos{color:var(--green);}
+  .pts.neg{color:var(--red);}
+  .empty{color:var(--muted); font-size:13px; text-align:center; padding:20px 0;}
+
+  /* Leaderboard */
+  .lb-row{display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid var(--line);}
+  .lb-row:last-child{border-bottom:none;}
+  .rank{
+    font-family:'Bebas Neue',sans-serif; font-size:20px; color:var(--muted);
+    width:28px; text-align:center;
+  }
+  .rank.gold{color:var(--gold);}
+  .lb-name{flex:1; font-weight:700; font-size:15px;}
+  .lb-you{color:var(--gold); font-size:10px; text-transform:uppercase; margin-left:6px; letter-spacing:1px;}
+  .lb-pts{font-family:'Space Mono',monospace; color:var(--gold); font-weight:700;}
+
+  /* Calendar */
+  .cal-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;}
+  .cal-head button{background:var(--surface-2); border:1px solid var(--line); color:var(--text); border-radius:8px; padding:6px 12px; cursor:pointer;}
+  .cal-grid{display:grid; grid-template-columns: repeat(7,1fr); gap:6px;}
+  .cal-dow{color:var(--muted); font-size:10px; text-align:center; text-transform:uppercase;}
+  .cal-cell{
+    aspect-ratio:1; border-radius:8px; display:flex; align-items:center; justify-content:center;
+    font-size:12px; background:var(--surface-2); border:1px solid var(--line); position:relative; color:var(--text);
+  }
+  .cal-cell.empty-cell{background:none; border:none;}
+  .cal-cell .dots{position:absolute; bottom:4px; display:flex; gap:2px;}
+  .dot{width:5px;height:5px;border-radius:50%;}
+  .dot.g{background:var(--green);}
+  .dot.r{background:var(--red);}
+  .legend{display:flex; gap:16px; margin-top:12px; font-size:11px; color:var(--muted); align-items:center; flex-wrap:wrap;}
+  .legend span{display:flex; align-items:center; gap:5px;}
+
+  /* Routine / checklist */
+  .routine-item{display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--line);}
+  .routine-item:last-child{border-bottom:none;}
+  .chk{
+    width:22px;height:22px;border-radius:6px;border:1px solid var(--line);background:var(--surface-2);
+    display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; font-size:13px;
+  }
+  .chk.done{background:var(--green); border-color:var(--green); color:#0D2016;}
+  .routine-name{flex:1; font-size:14px;}
+  .routine-name.done{text-decoration:line-through; color:var(--muted);}
+  .rm-btn{background:none; border:none; color:var(--muted); cursor:pointer; font-size:16px; padding:2px 6px;}
+  .add-row{display:flex; gap:8px; margin-top:10px;}
+  .add-row input{flex:1;}
+  .add-row button{width:auto; margin-top:0; padding:11px 16px;}
+
+  /* More menu */
+  .more-grid{display:flex; flex-direction:column; gap:10px;}
+  .more-item{
+    display:flex; align-items:center; gap:14px; background:var(--surface); border:1px solid var(--line);
+    border-radius:var(--radius); padding:14px 16px; cursor:pointer;
+  }
+  .more-item .ic{font-size:22px;}
+  .more-item .t{font-weight:700; font-size:15px;}
+  .more-item .d{color:var(--muted); font-size:12px; margin-top:2px;}
+  .more-item .arrow{margin-left:auto; color:var(--muted);}
+
+  .water-row{display:flex; align-items:center; gap:12px; margin-top:10px;}
+  .water-btn{
+    width:44px; height:44px; border-radius:50%; border:1px solid var(--line); background:var(--surface-2);
+    color:var(--text); font-size:20px; cursor:pointer;
+  }
+  .water-count{flex:1; text-align:center;}
+  .water-count .n{font-family:'Bebas Neue',sans-serif; font-size:32px; color:var(--blue);}
+  .water-count .l{color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:1px;}
+
+  .wk-table{width:100%; border-collapse:collapse; font-size:12px;}
+  .wk-table th{color:var(--muted); text-transform:uppercase; font-size:10px; text-align:left; padding:6px 4px; border-bottom:1px solid var(--line);}
+  .wk-table td{padding:8px 4px; border-bottom:1px solid var(--line);}
+  .wk-table tr:last-child td{border-bottom:none;}
+
+  .delta{font-family:'Space Mono',monospace; font-size:12px;}
+  .delta.up{color:var(--red);}
+  .delta.down{color:var(--green);}
+  .delta.flat{color:var(--muted);}
+
+  .toggle-row{display:flex; align-items:center; justify-content:space-between; margin-top:10px;}
+  .switch{position:relative; width:46px; height:26px; background:var(--surface-2); border:1px solid var(--line); border-radius:20px; cursor:pointer;}
+  .switch .knob{position:absolute; top:2px; left:2px; width:20px; height:20px; border-radius:50%; background:var(--muted); transition:all .15s;}
+  .switch.on{background:rgba(111,207,151,0.2); border-color:var(--green);}
+  .switch.on .knob{left:22px; background:var(--green);}
+
+  /* Bottom nav */
+  .nav{
+    position:fixed; bottom:0; left:50%; transform:translateX(-50%);
+    width:100%; max-width:var(--app-max); background:var(--surface);
+    border-top:1px solid var(--line); display:flex;
+  }
+  .nav button{
+    flex:1; background:none; border:none; color:var(--muted); padding:10px 2px 8px 2px;
+    cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:3px; font-size:9px;
+    text-transform:uppercase; letter-spacing:0.3px; font-weight:700;
+  }
+  .nav button.active{color:var(--gold);}
+  .nav .ic{font-size:17px;}
+  .loading{text-align:center; color:var(--muted); padding:30px; font-size:13px;}
+  select{-webkit-appearance:none; appearance:none;}
+
+  /* Splash screen */
+  .splash{
+    position:fixed; inset:0; background:var(--bg); z-index:9999;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    transition: opacity .5s ease, visibility .5s ease;
+  }
+  .splash.hide{opacity:0; visibility:hidden; pointer-events:none;}
+  .splash-logo{
+    width:88px; height:88px; border-radius:22px; background:var(--surface); border:2px solid var(--gold);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Bebas Neue',sans-serif; font-size:40px; color:var(--gold);
+    animation: splashPop .7s ease;
+  }
+  .splash-name{
+    font-family:'Bebas Neue',sans-serif; font-size:34px; letter-spacing:3px; margin-top:16px; color:var(--text);
+    opacity:0; animation: splashFadeUp .6s ease forwards; animation-delay:.3s;
+  }
+  .splash-tag{
+    color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:2px; margin-top:6px;
+    opacity:0; animation: splashFadeUp .6s ease forwards; animation-delay:.5s;
+  }
+  .splash-bar{width:120px; height:3px; background:var(--surface-2); border-radius:2px; margin-top:26px; overflow:hidden;}
+  .splash-bar-fill{width:40%; height:100%; background:var(--gold); border-radius:2px; animation: splashLoad 1.1s ease-in-out infinite;}
+  @keyframes splashPop{0%{transform:scale(0.5); opacity:0;} 60%{transform:scale(1.08); opacity:1;} 100%{transform:scale(1); opacity:1;}}
+  @keyframes splashFadeUp{from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);}}
+  @keyframes splashLoad{0%{transform:translateX(-120px);} 100%{transform:translateX(120px);}}
+
+  /* Toast */
+  .toast{
+    position:fixed; left:50%; bottom:90px; transform:translateX(-50%) translateY(16px);
+    width:100%; max-width:400px; margin:0 20px;
+    background:var(--surface); border:1px solid var(--green); color:var(--text);
+    padding:12px 16px; border-radius:10px; font-size:13px; font-weight:600;
+    display:flex; align-items:center; gap:8px; opacity:0; pointer-events:none;
+    transition: opacity .25s ease, transform .25s ease; z-index:5000;
+    box-shadow:0 8px 24px rgba(0,0,0,0.4);
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+  .toast .ic{color:var(--green); font-size:15px;}
+
+  /* ---------- Responsive breakpoints ---------- */
+  /* Small phones: tighten padding a touch so nothing feels cramped */
+  @media (max-width: 360px){
+    .screen{padding:6px 14px 20px 14px;}
+    .topbar{padding:16px 14px 8px 14px;}
+    .stat-box .n{font-size:20px;}
+  }
+  /* Tablets and small laptops: give the app more breathing room */
+  @media (min-width: 640px){
+    :root{ --app-max: 600px; }
+    .screen{padding:10px 28px 28px 28px;}
+    .topbar{padding:24px 28px 12px 28px;}
+    .stat-row{gap:14px;}
+  }
+  /* Desktop: present the app as a centered panel on a dark backdrop,
+     with two-column stat rows and a static side-friendly frame instead
+     of stretching a phone layout edge-to-edge. */
+  @media (min-width: 1000px){
+    :root{ --app-max: 720px; }
+    html,body{ background:#0A0C0E; }
+    #app{
+      border-left:1px solid var(--line);
+      border-right:1px solid var(--line);
+      box-shadow: 0 0 80px rgba(0,0,0,0.5);
+      min-height: 100vh;
+    }
+    .screen{padding:14px 40px 40px 40px;}
+    .topbar{padding:28px 40px 14px 40px;}
+    .topbar h1{font-size:36px;}
+    .card{padding:22px;}
+  }
+  /* Large desktop: cap width so lines/cards don't stretch absurdly wide */
+  @media (min-width: 1400px){
+    :root{ --app-max: 820px; }
+  }
+</style>
+</head>
+<body>
+<div id="splash" class="splash">
+  <div class="splash-logo">FF</div>
+  <div class="splash-name">FITFORGE</div>
+  <div class="splash-tag">Train. Track. Compete.</div>
+  <div class="splash-bar"><div class="splash-bar-fill"></div></div>
+</div>
+<div id="app"><div class="loading">Loading FitForge…</div></div>
+
+<script src="config.js"></script>
+<script>
+(function(){
+  var state = {
+    screen: 'login',
+    authTab: 'login',
+    user: null,
+    users: [],
+    activities: [],
+    junk: [],
+    leaderboard: {},
+    calMonth: new Date().getMonth(),
+    calYear: new Date().getFullYear(),
+    anaMonth: new Date().getMonth(),
+    anaYear: new Date().getFullYear(),
+    junkYN: null,
+    error: '',
+    routine: [],
+    routineLog: {},
+    water: [],
+    bottleCapacity: '',
+    weight: [],
+    remindersOn: false,
+    streakCurrent: 0,
+    streakBest: 0,
+    cleanStreakCurrent: 0,
+    cleanStreakBest: 0,
+    goals: []
+  };
+
+  var ACTIVITY_TYPES = ['Gym','Running','Swimming','Yoga','Cycling','Sports','Other'];
+  var MAX_HOURS = 12;
+  var MOTIVATION_QUOTES = [
+    'Small consistent efforts beat occasional big ones. Log something today.',
+    'You do not have to be extreme, just consistent.',
+    'Future you is built by what you do today.',
+    'Discipline is choosing between what you want now and what you want most.',
+    'A short workout logged beats a perfect workout skipped.',
+    'Show up. That is most of the battle.'
+  ];
+
+  function el(id){ return document.getElementById(id); }
+  function esc(s){ return (s||'').replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+
+  var toastTimer = null;
+  function showToast(msg){
+    var t = document.getElementById('toast');
+    if(!t){
+      t = document.createElement('div');
+      t.id = 'toast';
+      t.className = 'toast';
+      document.body.appendChild(t);
+    }
+    t.innerHTML = '<span class="ic">&#10003;</span><span>'+esc(msg)+'</span>';
+    requestAnimationFrame(function(){ t.classList.add('show'); });
+    if(toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ t.classList.remove('show'); }, 2200);
+  }
+
+  function todayISO(){ return fmtDate(new Date()); }
+  function fmtDate(d){ return d.toISOString().slice(0,10); }
+  function genId(){ return 'id'+Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+  function dayOfYear(d){ var start = new Date(d.getFullYear(),0,0); var diff = d - start; return Math.floor(diff/86400000); }
+
+  // ---------- backend API client (JWT auth, MySQL-backed) ----------
+  // Set window.FITFORGE_API_BASE before this script loads to point at your
+  // deployed backend, e.g. https://fitforge-server.up.railway.app
+  // Left blank, requests go to a same-origin "/api" (useful if you proxy the API
+  // behind the same domain as the frontend).
+  var API_BASE = (window.FITFORGE_API_BASE || '') + '/api';
+  var TOKEN_KEY = 'fitforge:token';
+
+  function getToken(){ return localStorage.getItem(TOKEN_KEY); }
+  function setToken(t){ if(t){ localStorage.setItem(TOKEN_KEY, t); } else { localStorage.removeItem(TOKEN_KEY); } }
+
+  async function apiFetch(path, opts){
+    opts = opts || {};
+    var headers = Object.assign({'Content-Type':'application/json'}, opts.headers||{});
+    var token = getToken();
+    if(token) headers['Authorization'] = 'Bearer ' + token;
+    var res;
+    try{
+      res = await fetch(API_BASE + path, {
+        method: opts.method || 'GET',
+        headers: headers,
+        body: opts.body ? JSON.stringify(opts.body) : undefined
+      });
+    }catch(e){
+      throw new Error('Could not reach the server. Check your connection and try again.');
+    }
+    var data = null;
+    try{ data = await res.json(); }catch(e){ /* no body */ }
+    if(!res.ok){
+      var err = new Error((data && data.error) || ('Request failed ('+res.status+')'));
+      err.status = res.status;
+      err.payload = data;
+      throw err;
+    }
+    return data;
+  }
+
+  async function loadLeaderboard(){
+    var res = await apiFetch('/data/leaderboard/all');
+    var lb = {};
+    (res.leaderboard||[]).forEach(function(row){ lb[row.username] = row.points; });
+    return lb;
+  }
+  async function loadAllUserData(){
+    var res = await apiFetch('/data');
+    return res.data || {};
+  }
+  async function saveUserData(username, kind, data){
+    await apiFetch('/data/'+encodeURIComponent(kind), { method:'PUT', body:{ value: data } });
+  }
+  async function addPoints(username, delta){
+    var res = await apiFetch('/data/leaderboard/points', { method:'POST', body:{ delta: delta } });
+    var lb = await loadLeaderboard();
+    state.leaderboard = lb;
+    return res.points;
+  }
+
+  // ---------- points ----------
+  function activityPoints(durationHrs){
+    var d = parseFloat(durationHrs) || 0;
+    return Math.max(5, Math.round(d * 10));
+  }
+  function junkPoints(had){ return had === 'yes' ? -5 : 5; }
+
+  // ---------- streaks ----------
+  function computeStreaks(){
+    var actDates = {};
+    state.activities.forEach(function(a){ actDates[a.date] = true; });
+    var cleanDates = {}, junkYesDates = {};
+    state.junk.forEach(function(j){
+      if(j.had === 'no') cleanDates[j.date] = true;
+      if(j.had === 'yes') junkYesDates[j.date] = true;
+    });
+
+    function currentStreak(datesMap){
+      var cursor = new Date(todayISO()+'T00:00:00');
+      if(!datesMap[fmtDate(cursor)]){ cursor.setDate(cursor.getDate()-1); }
+      var streak = 0;
+      while(datesMap[fmtDate(cursor)]){ streak++; cursor.setDate(cursor.getDate()-1); }
+      return streak;
+    }
+    function bestStreak(datesMap){
+      var days = Object.keys(datesMap).sort();
+      var best = 0, run = 0, prev = null;
+      days.forEach(function(dStr){
+        var d = new Date(dStr+'T00:00:00');
+        if(prev){
+          var diff = Math.round((d - prev) / 86400000);
+          run = (diff === 1) ? run + 1 : 1;
+        } else { run = 1; }
+        if(run > best) best = run;
+        prev = d;
+      });
+      return best;
+    }
+
+    state.streakCurrent = currentStreak(actDates);
+    state.streakBest = Math.max(bestStreak(actDates), state.streakCurrent);
+    state.cleanStreakCurrent = currentStreak(cleanDates);
+    state.cleanStreakBest = Math.max(bestStreak(cleanDates), state.cleanStreakCurrent);
+  }
+
+  // ---------- motivation ----------
+  function getMotivation(){
+    var d = new Date(); d.setDate(d.getDate()-7);
+    var lastWeekISO = fmtDate(d);
+    var match = state.activities.find(function(a){ return a.date === lastWeekISO; });
+    if(match){
+      var dayName = d.toLocaleDateString('default', {weekday:'long'});
+      return 'Last '+dayName+' you logged '+match.type+' — '+match.detail+' ('+match.duration+' hr). What about today?';
+    }
+    var idx = dayOfYear(new Date()) % MOTIVATION_QUOTES.length;
+    return MOTIVATION_QUOTES[idx];
+  }
+
+  // ---------- reminders (best-effort local notifications, requires tab/app open) ----------
+  var reminderTimer = null;
+  function scheduleReminder(){
+    if(reminderTimer) clearTimeout(reminderTimer);
+    if(!('Notification' in window) || Notification.permission !== 'granted') return;
+    var now = new Date();
+    var target = new Date(); target.setHours(20,0,0,0);
+    if(target <= now) target.setDate(target.getDate()+1);
+    var ms = target - now;
+    reminderTimer = setTimeout(function(){
+      try{
+        var pending = (state.routine||[]).length;
+        new Notification('FitForge reminder', {
+          body: getMotivation() + (pending ? ' You have '+pending+' routine item(s) today.' : '')
+        });
+      }catch(e){}
+      scheduleReminder();
+    }, ms);
+  }
+
+  // ---------- auth ----------
+  async function doSignup(username, fullName, email, password){
+    username = (username||'').trim();
+    fullName = (fullName||'').trim();
+    email = (email||'').trim();
+    if(!username || !fullName || !email || !password){
+      state.error = 'Fill in username, full name, email and password.'; render(); return;
+    }
+    if(password.length < 8){ state.error = 'Password must be at least 8 characters.'; render(); return; }
+    try{
+      var res = await apiFetch('/auth/signup', { method:'POST', body:{ username:username, fullName:fullName, email:email, password:password } });
+      state.error = '';
+      state.pendingEmail = res.email || email;
+      state.authTab = 'verify';
+      render();
+    }catch(e){
+      state.error = e.message; render();
+    }
+  }
+  async function doLogin(username, password){
+    username = (username||'').trim();
+    try{
+      var res = await apiFetch('/auth/login', { method:'POST', body:{ username:username, password:password } });
+      setToken(res.token);
+      await afterLogin(res.user.username);
+    }catch(e){
+      if(e.payload && e.payload.needsVerification){
+        state.pendingEmail = e.payload.email;
+        state.authTab = 'verify';
+        state.error = 'Please verify your email first — enter the code we sent you.';
+      } else {
+        state.error = e.message;
+      }
+      render();
+    }
+  }
+  async function doVerify(code){
+    try{
+      var res = await apiFetch('/auth/verify-email', { method:'POST', body:{ email: state.pendingEmail, code: code } });
+      setToken(res.token);
+      await afterLogin(res.user.username);
+    }catch(e){
+      state.error = e.message; render();
+    }
+  }
+  async function doResendCode(){
+    try{
+      await apiFetch('/auth/resend-code', { method:'POST', body:{ email: state.pendingEmail } });
+      state.error = ''; state.info = 'A new code was sent to '+state.pendingEmail+'.';
+      render();
+    }catch(e){
+      state.error = e.message; render();
+    }
+  }
+  async function afterLogin(username){
+    state.error = '';
+    state.info = '';
+    state.user = username;
+    var all = await loadAllUserData();
+    state.activities = all.activities || [];
+    state.junk = all.junk || [];
+    state.routine = all.routine || [];
+    state.routineLog = all.routineLog || {};
+    state.water = all.water || [];
+    state.weight = all.weight || [];
+    state.goals = all.goals || [];
+    var settings = all.settings || {};
+    state.bottleCapacity = settings.bottleCapacity || '';
+    state.remindersOn = !!settings.remindersOn;
+    state.leaderboard = await loadLeaderboard();
+    computeStreaks();
+    state.screen = 'home';
+    render();
+    if(state.remindersOn && 'Notification' in window && Notification.permission === 'granted'){ scheduleReminder(); }
+  }
+  async function saveSettings(){
+    await saveUserData(state.user, 'settings', { bottleCapacity: state.bottleCapacity, remindersOn: state.remindersOn });
+  }
+  async function doLogout(){
+    setToken(null);
+    if(reminderTimer) clearTimeout(reminderTimer);
+    state.user = null;
+    state.screen = 'login';
+    render();
+  }
+
+  // ---------- render ----------
+  function render(){
+    if(!state.user){ renderLogin(); return; }
+    var app = el('app');
+    var body = '';
+    if(state.screen === 'home') body = renderHome();
+    else if(state.screen === 'activity') body = renderActivity();
+    else if(state.screen === 'junk') body = renderJunk();
+    else if(state.screen === 'leaderboard') body = renderLeaderboard();
+    else if(state.screen === 'calendar') body = renderCalendar();
+    else if(state.screen === 'more') body = renderMore();
+    else if(state.screen === 'routine') body = renderRoutine();
+    else if(state.screen === 'water') body = renderWater();
+    else if(state.screen === 'weight') body = renderWeight();
+    else if(state.screen === 'calories') body = renderCalories();
+    else if(state.screen === 'weekly') body = renderWeekly();
+    else if(state.screen === 'monthly') body = renderMonthly();
+    else if(state.screen === 'goals') body = renderGoals();
+
+    app.innerHTML =
+      '<div class="topbar">'+
+        '<div><h1>FITFORGE</h1><div class="sub">'+esc(state.user)+'</div></div>'+
+        '<button class="logout-btn" onclick="App.logout()">Log out</button>'+
+      '</div>'+
+      '<div class="screen">'+body+'</div>'+
+      renderNav();
+    bindAfterRender();
+  }
+
+  var MORE_SCREENS = {routine:1, water:1, weight:1, calories:1, weekly:1, monthly:1, goals:1, more:1};
+
+  function renderNav(){
+    function b(key, icon, label){
+      var isActive = (state.screen === key) || (key === 'more' && MORE_SCREENS[state.screen]);
+      return '<button class="'+(isActive?'active':'')+'" onclick="App.go(\''+key+'\')"><span class="ic">'+icon+'</span>'+label+'</button>';
+    }
+    return '<div class="nav">'+
+      b('home','&#127942;','Home')+
+      b('activity','&#127939;','Activity')+
+      b('junk','&#127860;','Food')+
+      b('leaderboard','&#128202;','Ranks')+
+      b('calendar','&#128197;','Calendar')+
+      b('more','&#8942;','More')+
+      '</div>';
+  }
+
+  function myPoints(){ return state.leaderboard[state.user] || 0; }
+  function rankOf(username){
+    var arr = Object.keys(state.leaderboard).map(function(k){ return {u:k, p: state.leaderboard[k]}; });
+    arr.sort(function(a,b){ return b.p - a.p; });
+    for(var i=0;i<arr.length;i++){ if(arr[i].u === username) return i+1; }
+    return arr.length+1;
+  }
+
+  function backRow(label, target){
+    return '<div class="back-row"><button class="back-btn" onclick="App.go(\''+target+'\')">&larr; Back</button><h3 style="font-size:20px">'+label+'</h3></div>';
+  }
+
+  // ---------- HOME ----------
+  function renderHome(){
+    var pts = myPoints();
+    var digits = String(Math.abs(pts)).padStart(4,'0').split('');
+    var todayAct = state.activities.filter(function(a){ return a.date === todayISO(); }).length;
+    var todayJunk = state.junk.filter(function(j){ return j.date === todayISO(); }).length;
+    var rank = rankOf(state.user);
+
+    var todayLog = state.routineLog[todayISO()] || {};
+    var routinePreview = state.routine.slice(0,3).map(function(r){
+      var done = !!todayLog[r.id];
+      return '<div class="routine-item"><div class="chk '+(done?'done':'')+'" onclick="App.toggleRoutine(\''+r.id+'\')">'+(done?'&#10003;':'')+'</div>'+
+        '<div class="routine-name '+(done?'done':'')+'">'+esc(r.name)+'</div></div>';
+    }).join('');
+    var routineBlock = state.routine.length
+      ? routinePreview + '<button class="btn btn-outline btn-sm" style="margin-top:10px" onclick="App.go(\'routine\')">Manage Routine</button>'
+      : '<div class="empty">No daily routine set yet.</div><button class="btn btn-outline btn-sm" style="margin-top:6px" onclick="App.go(\'routine\')">Set Up Routine</button>';
+
+    var cap = parseFloat(state.bottleCapacity) || 0;
+    var waterToday = state.water.find(function(w){ return w.date === todayISO(); });
+    var bottles = waterToday ? waterToday.bottles : 0;
+    var waterBlock = cap
+      ? '<div class="water-row"><button class="water-btn" onclick="App.addBottle(-1)">-</button>'+
+        '<div class="water-count"><div class="n">'+bottles+'</div><div class="l">bottles · '+(bottles*cap).toFixed(2)+' L today</div></div>'+
+        '<button class="water-btn" onclick="App.addBottle(1)">+</button></div>'
+      : '<div class="empty">Set your bottle size to start tracking.</div><button class="btn btn-outline btn-sm" style="margin-top:6px" onclick="App.go(\'water\')">Set Up Water Tracker</button>';
+
+    var upcomingGoals = state.goals.filter(function(g){ return !g.done; })
+      .sort(function(a,b){ return a.deadline.localeCompare(b.deadline); }).slice(0,3);
+    var goalsBlock = upcomingGoals.length
+      ? upcomingGoals.map(function(g){
+          var st = goalStatus(g);
+          return '<div class="entry"><div><div class="main">'+esc(g.text)+'</div><div class="sub">Due '+g.deadline+'</div></div>'+
+            '<div class="delta '+(st.cls==='red'?'up':st.cls==='green'?'down':'flat')+'">'+st.label+'</div></div>';
+        }).join('') + '<button class="btn btn-outline btn-sm" style="margin-top:10px" onclick="App.go(\'goals\')">Manage Goals</button>'
+      : '<div class="empty">No goals yet.</div><button class="btn btn-outline btn-sm" style="margin-top:6px" onclick="App.go(\'goals\')">Set a Goal</button>';
+
+    return ''+
+      '<div class="banner"><div class="tag">Today</div><p>'+esc(getMotivation())+'</p></div>'+
+      '<div class="scoreboard">'+
+        '<div class="label">Total Points</div>'+
+        '<div class="digits">'+ (pts<0?'<div class="digit" style="color:var(--red)">-</div>':'') + digits.map(function(d){return '<div class="digit">'+d+'</div>';}).join('') + '</div>'+
+        '<div class="stat-row">'+
+          '<div class="stat-box"><div class="n">#'+rank+'</div><div class="l">Rank</div></div>'+
+          '<div class="stat-box"><div class="n">'+todayAct+'</div><div class="l">Today Workouts</div></div>'+
+          '<div class="stat-box"><div class="n red">'+todayJunk+'</div><div class="l">Today Food Logs</div></div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="streak-row">'+
+        '<div class="streak-box"><div class="fire">&#128293;</div><div class="n">'+state.streakCurrent+'</div><div class="l">Workout Streak</div></div>'+
+        '<div class="streak-box"><div class="fire">&#127793;</div><div class="n">'+state.cleanStreakCurrent+'</div><div class="l">Clean Eating Streak</div></div>'+
+      '</div>'+
+      '<div class="card"><h3>Daily Routine</h3>'+routineBlock+'</div>'+
+      '<div class="card"><h3>Goals</h3>'+goalsBlock+'</div>'+
+      '<div class="card"><h3>Water Intake</h3>'+waterBlock+'</div>'+
+      '<div class="card">'+
+        '<h3>Quick Log</h3>'+
+        '<button class="btn" onclick="App.go(\'activity\')">+ Log a Workout</button>'+
+        '<button class="btn btn-outline" onclick="App.go(\'junk\')">+ Log Today&#39;s Food</button>'+
+      '</div>'+
+      '<div class="card"><h3>More Tools</h3><div class="hint" style="margin-bottom:8px">Weekly &amp; monthly analysis, weight and calorie tools live under More in the bottom bar.</div>'+
+      '<button class="btn btn-outline btn-sm" onclick="App.go(\'more\')">Open More</button></div>';
+  }
+
+  // ---------- ACTIVITY ----------
+  function renderActivity(){
+    var list = state.activities.slice().sort(function(a,b){ return b.date.localeCompare(a.date); });
+    var rows = list.length ? list.map(function(a){
+      return '<div class="entry"><div><div class="main">'+esc(a.type)+' — '+esc(a.detail)+'</div>'+
+        '<div class="sub">'+a.date+' · '+a.duration+' hr</div></div>'+
+        '<div class="pts pos">+'+a.points+'</div></div>';
+    }).join('') : '<div class="empty">No workouts logged yet.</div>';
+
+    return ''+
+      '<div class="card">'+
+        '<h3>Log a Workout</h3>'+
+        '<label>Date</label>'+
+        '<input type="text" id="actDate" value="'+todayISO()+'" placeholder="YYYY-MM-DD">'+
+        '<label>Type</label>'+
+        '<select id="actType">'+ ACTIVITY_TYPES.map(function(t){return '<option>'+t+'</option>';}).join('') +'</select>'+
+        '<label>Details</label>'+
+        '<input type="text" id="actDetail" placeholder="e.g. chest & tricep, or 4 laps, or 5 km">'+
+        '<label>Duration (hours, max '+MAX_HOURS+')</label>'+
+        '<input type="number" id="actDuration" step="0.25" min="0" max="'+MAX_HOURS+'" placeholder="1">'+
+        '<button class="btn" onclick="App.addActivity()">Save Workout</button>'+
+        (state.error ? '<div class="error">'+esc(state.error)+'</div>' : '')+
+      '</div>'+
+      '<div class="card"><h3>History</h3>'+rows+'</div>';
+  }
+
+  // ---------- JUNK ----------
+  function renderJunk(){
+    var list = state.junk.slice().sort(function(a,b){ return b.date.localeCompare(a.date); });
+    var rows = list.length ? list.map(function(j){
+      return '<div class="entry"><div><div class="main">'+esc(j.food)+'</div>'+
+        '<div class="sub">'+j.date+' · '+(j.had==='yes'?'Had junk food':'Stayed clean')+'</div></div>'+
+        '<div class="pts '+(j.points>0?'pos':'neg')+'">'+(j.points>0?'+':'')+j.points+'</div></div>';
+    }).join('') : '<div class="empty">No entries yet.</div>';
+
+    return ''+
+      '<div class="card">'+
+        '<h3>Log Today&#39;s Food</h3>'+
+        '<label>Date</label>'+
+        '<input type="text" id="junkDate" value="'+todayISO()+'" placeholder="YYYY-MM-DD">'+
+        '<label>Was it junk food?</label>'+
+        '<div class="yn-row">'+
+          '<button type="button" class="yn-btn '+(state.junkYN==='yes'?'active-yes':'')+'" onclick="App.setYN(\'yes\')">Yes</button>'+
+          '<button type="button" class="yn-btn '+(state.junkYN==='no'?'active-no':'')+'" onclick="App.setYN(\'no\')">No</button>'+
+        '</div>'+
+        '<label>Food name</label>'+
+        '<input type="text" id="junkFood" placeholder="e.g. pizza, chips, salad">'+
+        '<button class="btn" onclick="App.addJunk()">Save Entry</button>'+
+        (state.error ? '<div class="error">'+esc(state.error)+'</div>' : '')+
+      '</div>'+
+      '<div class="card"><h3>History</h3>'+rows+'</div>';
+  }
+
+  // ---------- LEADERBOARD ----------
+  function renderLeaderboard(){
+    var arr = Object.keys(state.leaderboard).map(function(k){ return {u:k, p: state.leaderboard[k]}; });
+    arr.sort(function(a,b){ return b.p - a.p; });
+    var rows = arr.length ? arr.map(function(row, i){
+      return '<div class="lb-row"><div class="rank '+(i===0?'gold':'')+'">'+(i+1)+'</div>'+
+        '<div class="lb-name">'+esc(row.u)+(row.u===state.user?'<span class="lb-you">You</span>':'')+'</div>'+
+        '<div class="lb-pts">'+row.p+'</div></div>';
+    }).join('') : '<div class="empty">No players yet.</div>';
+    return '<div class="card"><h3>Leaderboard</h3>'+rows+'</div>';
+  }
+
+  // ---------- CALENDAR ----------
+  function renderCalendar(){
+    var y = state.calYear, m = state.calMonth;
+    var first = new Date(y, m, 1);
+    var startDow = first.getDay();
+    var daysInMonth = new Date(y, m+1, 0).getDate();
+    var monthName = first.toLocaleString('default', {month:'long'});
+
+    var actDays = {}, junkYesDays = {}, junkNoDays = {};
+    state.activities.forEach(function(a){
+      var d = new Date(a.date+'T00:00:00');
+      if(d.getFullYear()===y && d.getMonth()===m) actDays[d.getDate()] = true;
+    });
+    state.junk.forEach(function(j){
+      var d = new Date(j.date+'T00:00:00');
+      if(d.getFullYear()===y && d.getMonth()===m){
+        if(j.had==='yes') junkYesDays[d.getDate()] = true; else junkNoDays[d.getDate()] = true;
+      }
+    });
+
+    var cells = '';
+    ['S','M','T','W','T','F','S'].forEach(function(d){ cells += '<div class="cal-dow">'+d+'</div>'; });
+    for(var i=0;i<startDow;i++){ cells += '<div class="cal-cell empty-cell"></div>'; }
+    for(var day=1; day<=daysInMonth; day++){
+      var dots = '';
+      if(actDays[day]) dots += '<div class="dot g"></div>';
+      if(junkYesDays[day]) dots += '<div class="dot r"></div>';
+      cells += '<div class="cal-cell">'+day+'<div class="dots">'+dots+'</div></div>';
+    }
+
+    var workoutCount = Object.keys(actDays).length;
+    var junkCount = Object.keys(junkYesDays).length;
+    var cleanCount = Object.keys(junkNoDays).length;
+
+    return ''+
+      '<div class="card">'+
+        '<div class="cal-head">'+
+          '<button onclick="App.shiftMonth(-1)">&larr;</button>'+
+          '<h3>'+monthName+' '+y+'</h3>'+
+          '<button onclick="App.shiftMonth(1)">&rarr;</button>'+
+        '</div>'+
+        '<div class="cal-grid">'+cells+'</div>'+
+        '<div class="legend">'+
+          '<span><div class="dot g"></div> Workout day</span>'+
+          '<span><div class="dot r"></div> Junk food day</span>'+
+        '</div>'+
+      '</div>'+
+      '<div class="card">'+
+        '<div class="stat-row">'+
+          '<div class="stat-box"><div class="n">'+workoutCount+'</div><div class="l">Workout Days</div></div>'+
+          '<div class="stat-box"><div class="n red">'+junkCount+'</div><div class="l">Junk Food Days</div></div>'+
+          '<div class="stat-box"><div class="n">'+cleanCount+'</div><div class="l">Clean Days</div></div>'+
+        '</div>'+
+      '</div>';
+  }
+
+  // ---------- MORE HUB ----------
+  function renderMore(){
+    function item(key, icon, title, desc){
+      return '<div class="more-item" onclick="App.go(\''+key+'\')"><div class="ic">'+icon+'</div>'+
+        '<div><div class="t">'+title+'</div><div class="d">'+desc+'</div></div><div class="arrow">&rsaquo;</div></div>';
+    }
+    var notifSupported = ('Notification' in window);
+    var notifState = notifSupported ? Notification.permission : 'unsupported';
+    return ''+
+      '<div class="card"><h3>Reminders</h3>'+
+        '<div class="hint">Local daily reminder at 8:00 PM with your motivation line and routine nudge. Only fires while this app/tab stays open in the background — browser support varies, especially on iOS.</div>'+
+        '<div class="toggle-row"><div>Daily reminder</div>'+
+        '<div class="switch '+(state.remindersOn?'on':'')+'" onclick="App.toggleReminders()"><div class="knob"></div></div></div>'+
+        (notifSupported ? '<div class="hint">Notification permission: '+notifState+'</div>' : '<div class="hint">Notifications are not supported in this browser.</div>')+
+      '</div>'+
+      '<div class="more-grid">'+
+        item('goals','&#127919;','Goals','Set targets with a deadline')+
+        item('routine','&#128203;','Daily Routine','Set and check off your routine')+
+        item('water','&#128167;','Water Tracker','Log bottles against your capacity')+
+        item('weight','&#9878;&#65039;','Weight Tracker','Log and follow your weight over time')+
+        item('calories','&#127858;','Calorie Calculator','Estimate your daily calorie needs')+
+        item('weekly','&#128200;','Weekly Summary','Last 7 days at a glance')+
+        item('monthly','&#128197;','Monthly Analysis','Full month performance breakdown')+
+      '</div>';
+  }
+
+  // ---------- GOALS ----------
+  function goalStatus(goal){
+    if(goal.done) return {label:'Done', cls:'green'};
+    var today = new Date(todayISO()+'T00:00:00');
+    var due = new Date(goal.deadline+'T00:00:00');
+    var diff = Math.round((due - today) / 86400000);
+    if(diff < 0) return {label:'Overdue by '+Math.abs(diff)+' day'+(Math.abs(diff)===1?'':'s'), cls:'red'};
+    if(diff === 0) return {label:'Due today', cls:'gold'};
+    return {label:diff+' day'+(diff===1?'':'s')+' left', cls:''};
+  }
+  function renderGoals(){
+    var sorted = state.goals.slice().sort(function(a,b){
+      if(a.done !== b.done) return a.done ? 1 : -1;
+      return a.deadline.localeCompare(b.deadline);
+    });
+    var rows = sorted.length ? sorted.map(function(g){
+      var st = goalStatus(g);
+      return '<div class="routine-item"><div class="chk '+(g.done?'done':'')+'" onclick="App.toggleGoal(\''+g.id+'\')">'+(g.done?'&#10003;':'')+'</div>'+
+        '<div style="flex:1"><div class="routine-name '+(g.done?'done':'')+'">'+esc(g.text)+'</div>'+
+        '<div class="sub" style="margin-top:2px">Deadline: '+g.deadline+' · <span class="delta '+(st.cls==='red'?'up':st.cls==='green'?'down':'flat')+'">'+st.label+'</span></div></div>'+
+        '<button class="rm-btn" onclick="App.removeGoal(\''+g.id+'\')">&times;</button></div>';
+    }).join('') : '<div class="empty">No goals yet — set your first target below.</div>';
+
+    return backRow('Goals','more')+
+      '<div class="card"><h3>Your Goals</h3>'+rows+
+        '<label>Goal</label>'+
+        '<input type="text" id="goalText" placeholder="e.g. Run 10km without stopping">'+
+        '<label>Deadline</label>'+
+        '<input type="text" id="goalDeadline" value="'+todayISO()+'" placeholder="YYYY-MM-DD">'+
+        '<button class="btn" onclick="App.addGoal()">Add Goal</button>'+
+        (state.error ? '<div class="error">'+esc(state.error)+'</div>' : '')+
+      '</div>';
+  }
+
+  // ---------- ROUTINE ----------
+  function renderRoutine(){
+    var todayLog = state.routineLog[todayISO()] || {};
+    var rows = state.routine.length ? state.routine.map(function(r){
+      var done = !!todayLog[r.id];
+      return '<div class="routine-item"><div class="chk '+(done?'done':'')+'" onclick="App.toggleRoutine(\''+r.id+'\')">'+(done?'&#10003;':'')+'</div>'+
+        '<div class="routine-name '+(done?'done':'')+'">'+esc(r.name)+'</div>'+
+        '<button class="rm-btn" onclick="App.removeRoutine(\''+r.id+'\')">&times;</button></div>';
+    }).join('') : '<div class="empty">No routine items yet — add your first one below.</div>';
+
+    return backRow('Daily Routine','more')+
+      '<div class="card"><h3>Today, checked off</h3>'+rows+
+        '<div class="add-row"><input type="text" id="routineInput" placeholder="e.g. Morning stretch, Gym session"><button class="btn" onclick="App.addRoutine()">Add</button></div>'+
+        '<div class="hint">Checkboxes reset per day automatically — the list of items stays the same, you just tick off what you did today.</div>'+
+      '</div>';
+  }
+
+  // ---------- WATER ----------
+  function renderWater(){
+    var cap = parseFloat(state.bottleCapacity) || 0;
+    var todayEntry = state.water.find(function(w){ return w.date === todayISO(); });
+    var bottles = todayEntry ? todayEntry.bottles : 0;
+    var history = state.water.slice().sort(function(a,b){ return b.date.localeCompare(a.date); }).slice(0,10);
+    var rows = history.length ? history.map(function(w){
+      return '<div class="entry"><div class="main">'+w.date+'</div><div class="sub mono">'+w.bottles+' bottles · '+(w.bottles*cap).toFixed(2)+' L</div></div>';
+    }).join('') : '<div class="empty">No water logged yet.</div>';
+
+    return backRow('Water Tracker','more')+
+      '<div class="card"><h3>Bottle Capacity</h3>'+
+        '<label>Your bottle size (liters)</label>'+
+        '<input type="number" id="capInput" step="0.05" min="0.05" value="'+esc(state.bottleCapacity)+'" placeholder="e.g. 1.0">'+
+        '<button class="btn" onclick="App.saveCapacity()">Save Capacity</button>'+
+        (state.error ? '<div class="error">'+esc(state.error)+'</div>' : '')+
+      '</div>'+
+      (cap ? '<div class="card"><h3>Today</h3><div class="water-row">'+
+        '<button class="water-btn" onclick="App.addBottle(-1)">-</button>'+
+        '<div class="water-count"><div class="n">'+bottles+'</div><div class="l">bottles · '+(bottles*cap).toFixed(2)+' L</div></div>'+
+        '<button class="water-btn" onclick="App.addBottle(1)">+</button></div></div>' : '')+
+      '<div class="card"><h3>History</h3>'+rows+'</div>';
+  }
+
+  // ---------- WEIGHT ----------
+  function renderWeight(){
+    var sorted = state.weight.slice().sort(function(a,b){ return a.date.localeCompare(b.date); });
+    var descRows = sorted.slice().reverse().map(function(w, idx){
+      var i = sorted.length - 1 - idx;
+      var prev = sorted[i-1];
+      var d = '';
+      if(prev){
+        var diff = (w.weight - prev.weight);
+        var cls = diff > 0 ? 'up' : (diff < 0 ? 'down' : 'flat');
+        d = '<span class="delta '+cls+'">'+(diff>0?'+':'')+diff.toFixed(1)+' kg</span>';
+      }
+      return '<div class="entry"><div><div class="main">'+w.weight+' kg</div><div class="sub">'+w.date+'</div></div>'+d+'</div>';
+    }).join('');
+    var rows = sorted.length ? descRows : '<div class="empty">No weight logged yet.</div>';
+
+    return backRow('Weight Tracker','more')+
+      '<div class="card"><h3>Log Weight</h3>'+
+        '<label>Date</label>'+
+        '<input type="text" id="weightDate" value="'+todayISO()+'" placeholder="YYYY-MM-DD">'+
+        '<label>Weight (kg)</label>'+
+        '<input type="number" id="weightValue" step="0.1" min="1" placeholder="e.g. 70.5">'+
+        '<button class="btn" onclick="App.addWeight()">Save Weight</button>'+
+        (state.error ? '<div class="error">'+esc(state.error)+'</div>' : '')+
+      '</div>'+
+      '<div class="card"><h3>History</h3>'+rows+'</div>';
+  }
+
+  // ---------- CALORIES ----------
+  function renderCalories(){
+    return backRow('Calorie Calculator','more')+
+      '<div class="card"><h3>Estimate Daily Calories</h3>'+
+        '<label>Age</label><input type="number" id="calAge" min="10" max="100" placeholder="e.g. 24">'+
+        '<label>Sex</label><select id="calSex"><option value="male">Male</option><option value="female">Female</option></select>'+
+        '<label>Weight (kg)</label><input type="number" id="calWeight" step="0.1" placeholder="e.g. 70">'+
+        '<label>Height (cm)</label><input type="number" id="calHeight" step="0.1" placeholder="e.g. 175">'+
+        '<label>Activity level</label>'+
+        '<select id="calActivity">'+
+          '<option value="1.2">Sedentary (little or no exercise)</option>'+
+          '<option value="1.375">Light (1-3 days/week)</option>'+
+          '<option value="1.55" selected>Moderate (3-5 days/week)</option>'+
+          '<option value="1.725">Active (6-7 days/week)</option>'+
+          '<option value="1.9">Very active (hard training)</option>'+
+        '</select>'+
+        '<button class="btn" onclick="App.calcCalories()">Calculate</button>'+
+        '<div id="calResult"></div>'+
+        (state.error ? '<div class="error">'+esc(state.error)+'</div>' : '')+
+        '<div class="hint">Estimate only, based on the Mifflin-St Jeor formula. Not medical advice.</div>'+
+      '</div>';
+  }
+
+  // ---------- WEEKLY ----------
+  function last7Dates(){
+    var out = [];
+    for(var i=6;i>=0;i--){ var d = new Date(); d.setDate(d.getDate()-i); out.push(fmtDate(d)); }
+    return out;
+  }
+  function renderWeekly(){
+    var dates = last7Dates();
+    var cap = parseFloat(state.bottleCapacity) || 0;
+    var totalHours = 0, actPts = 0, junkPts = 0, workoutDays = 0, junkDays = 0, cleanDays = 0, totalLiters = 0;
+    var rows = dates.map(function(date){
+      var acts = state.activities.filter(function(a){ return a.date === date; });
+      var hrs = acts.reduce(function(s,a){ return s + (parseFloat(a.duration)||0); }, 0);
+      var pts = acts.reduce(function(s,a){ return s + a.points; }, 0);
+      totalHours += hrs; actPts += pts;
+      if(acts.length) workoutDays++;
+      var junkEntry = state.junk.find(function(j){ return j.date === date; });
+      var jTxt = '—';
+      if(junkEntry){
+        junkPts += junkEntry.points;
+        if(junkEntry.had === 'yes'){ junkDays++; jTxt = 'Junk'; } else { cleanDays++; jTxt = 'Clean'; }
+      }
+      var wEntry = state.water.find(function(w){ return w.date === date; });
+      var liters = wEntry ? wEntry.bottles*cap : 0;
+      totalLiters += liters;
+      var dowLabel = new Date(date+'T00:00:00').toLocaleDateString('default',{weekday:'short'});
+      return '<tr><td>'+dowLabel+'</td><td>'+hrs.toFixed(2)+'h</td><td>'+jTxt+'</td><td>'+(cap?liters.toFixed(1)+'L':'—')+'</td></tr>';
+    }).join('');
+
+    return backRow('Weekly Summary','more')+
+      '<div class="card"><h3>Last 7 Days</h3>'+
+        '<div class="stat-row">'+
+          '<div class="stat-box"><div class="n">'+totalHours.toFixed(1)+'</div><div class="l">Hours Trained</div></div>'+
+          '<div class="stat-box"><div class="n">'+workoutDays+'</div><div class="l">Workout Days</div></div>'+
+          '<div class="stat-box"><div class="n gold">'+(actPts+junkPts)+'</div><div class="l">Points Earned</div></div>'+
+        '</div>'+
+        '<div class="stat-row" style="margin-top:10px">'+
+          '<div class="stat-box"><div class="n red">'+junkDays+'</div><div class="l">Junk Days</div></div>'+
+          '<div class="stat-box"><div class="n">'+cleanDays+'</div><div class="l">Clean Days</div></div>'+
+          '<div class="stat-box"><div class="n blue">'+(cap?totalLiters.toFixed(1)+'L':'—')+'</div><div class="l">Water</div></div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="card"><h3>Day by Day</h3><table class="wk-table"><tr><th>Day</th><th>Trained</th><th>Food</th><th>Water</th></tr>'+rows+'</table></div>';
+  }
+
+  // ---------- MONTHLY ----------
+  function renderMonthly(){
+    var y = state.anaYear, m = state.anaMonth;
+    var monthName = new Date(y,m,1).toLocaleString('default',{month:'long'});
+    var daysInMonth = new Date(y, m+1, 0).getDate();
+    var cap = parseFloat(state.bottleCapacity) || 0;
+
+    var inMonth = function(dateStr){ var d = new Date(dateStr+'T00:00:00'); return d.getFullYear()===y && d.getMonth()===m; };
+    var actsInMonth = state.activities.filter(function(a){ return inMonth(a.date); });
+    var junkInMonth = state.junk.filter(function(j){ return inMonth(j.date); });
+    var waterInMonth = state.water.filter(function(w){ return inMonth(w.date); });
+    var weightInMonth = state.weight.filter(function(w){ return inMonth(w.date); }).sort(function(a,b){ return a.date.localeCompare(b.date); });
+
+    var totalHours = actsInMonth.reduce(function(s,a){ return s+(parseFloat(a.duration)||0); },0);
+    var totalActPts = actsInMonth.reduce(function(s,a){ return s+a.points; },0);
+    var totalJunkPts = junkInMonth.reduce(function(s,j){ return s+j.points; },0);
+    var workoutDaySet = {}; actsInMonth.forEach(function(a){ workoutDaySet[a.date]=1; });
+    var junkDaySet = {}, cleanDaySet = {};
+    junkInMonth.forEach(function(j){ if(j.had==='yes') junkDaySet[j.date]=1; else cleanDaySet[j.date]=1; });
+    var totalLiters = waterInMonth.reduce(function(s,w){ return s+w.bottles*cap; },0);
+
+    var weightChangeTxt = 'No data';
+    if(weightInMonth.length >= 2){
+      var diff = weightInMonth[weightInMonth.length-1].weight - weightInMonth[0].weight;
+      weightChangeTxt = (diff>0?'+':'')+diff.toFixed(1)+' kg';
+    } else if(weightInMonth.length === 1){
+      weightChangeTxt = weightInMonth[0].weight+' kg logged';
+    }
+
+    var workoutDayCount = Object.keys(workoutDaySet).length;
+    var consistency = Math.round((workoutDayCount/daysInMonth)*100);
+
+    return backRow('Monthly Analysis','more')+
+      '<div class="card"><div class="cal-head">'+
+        '<button onclick="App.shiftAnaMonth(-1)">&larr;</button><h3>'+monthName+' '+y+'</h3><button onclick="App.shiftAnaMonth(1)">&rarr;</button>'+
+      '</div></div>'+
+      '<div class="card"><h3>Overview</h3>'+
+        '<div class="stat-row">'+
+          '<div class="stat-box"><div class="n">'+workoutDayCount+'/'+daysInMonth+'</div><div class="l">Workout Days</div></div>'+
+          '<div class="stat-box"><div class="n">'+totalHours.toFixed(1)+'</div><div class="l">Hours Trained</div></div>'+
+          '<div class="stat-box"><div class="n gold">'+consistency+'%</div><div class="l">Consistency</div></div>'+
+        '</div>'+
+        '<div class="stat-row" style="margin-top:10px">'+
+          '<div class="stat-box"><div class="n red">'+Object.keys(junkDaySet).length+'</div><div class="l">Junk Days</div></div>'+
+          '<div class="stat-box"><div class="n">'+Object.keys(cleanDaySet).length+'</div><div class="l">Clean Days</div></div>'+
+          '<div class="stat-box"><div class="n gold">'+(totalActPts+totalJunkPts)+'</div><div class="l">Points Earned</div></div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="card"><h3>Water &amp; Weight</h3>'+
+        '<div class="stat-row">'+
+          '<div class="stat-box"><div class="n blue">'+(cap?totalLiters.toFixed(1)+'L':'—')+'</div><div class="l">Water Total</div></div>'+
+          '<div class="stat-box"><div class="n">'+weightChangeTxt+'</div><div class="l">Weight Change</div></div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="card"><h3>Streaks (All-Time)</h3>'+
+        '<div class="stat-row">'+
+          '<div class="stat-box"><div class="n">'+state.streakBest+'</div><div class="l">Best Workout Streak</div></div>'+
+          '<div class="stat-box"><div class="n">'+state.cleanStreakBest+'</div><div class="l">Best Clean Streak</div></div>'+
+        '</div>'+
+      '</div>';
+  }
+
+  // ---------- LOGIN ----------
+  function renderLogin(){
+    var app = el('app');
+
+    if(state.authTab === 'verify'){
+      app.innerHTML =
+        '<div class="login-wrap">'+
+          '<div class="brand"><div class="mark">FF</div><h1>FITFORGE</h1><p>Train. Track. Compete.</p></div>'+
+          '<div class="card">'+
+            '<label>Verification Code</label>'+
+            '<p class="hint" style="margin-top:0">We sent a 6-digit code to '+esc(state.pendingEmail||'your email')+'.</p>'+
+            '<input type="text" id="authCode" inputmode="numeric" maxlength="6" placeholder="123456">'+
+            '<button class="btn" onclick="App.submitVerify()">Verify Email</button>'+
+            '<button class="btn-secondary" onclick="App.resendCode()">Resend Code</button>'+
+            '<button class="btn-secondary" onclick="App.setAuthTab(\'login\')">Back to Log In</button>'+
+            (state.error ? '<div class="error">'+esc(state.error)+'</div>' : '')+
+            (state.info ? '<div class="hint">'+esc(state.info)+'</div>' : '')+
+          '</div>'+
+        '</div>';
+      bindAfterRender();
+      return;
+    }
+
+    var isLogin = state.authTab === 'login';
+    app.innerHTML =
+      '<div class="login-wrap">'+
+        '<div class="brand"><div class="mark">FF</div><h1>FITFORGE</h1><p>Train. Track. Compete.</p></div>'+
+        '<div class="tabswitch">'+
+          '<button class="'+(isLogin?'active':'')+'" onclick="App.setAuthTab(\'login\')">Log In</button>'+
+          '<button class="'+(!isLogin?'active':'')+'" onclick="App.setAuthTab(\'signup\')">Sign Up</button>'+
+        '</div>'+
+        '<div class="card">'+
+          (isLogin ? '' :
+            '<label>Full Name</label>'+
+            '<input type="text" id="authFullName" placeholder="your full name">'+
+            '<label>Email</label>'+
+            '<input type="email" id="authEmail" placeholder="you@example.com">'
+          )+
+          '<label>Username</label>'+
+          '<input type="text" id="authUser" placeholder="your username">'+
+          '<label>Password</label>'+
+          '<input type="password" id="authPass" placeholder="'+(isLogin?'********':'min. 8 characters')+'">'+
+          '<button class="btn" onclick="App.submitAuth()">'+(isLogin?'Log In':'Create Account')+'</button>'+
+          (state.error ? '<div class="error">'+esc(state.error)+'</div>' : '')+
+          '<div class="hint">'+(isLogin ? 'Log in with your username and password.' : 'We\'ll email you a code to verify your account before you can log in.')+'</div>'+
+        '</div>'+
+      '</div>';
+    bindAfterRender();
+  }
+
+  function bindAfterRender(){
+    var inputs = document.querySelectorAll('input');
+    inputs.forEach(function(inp){
+      inp.addEventListener('keydown', function(e){
+        if(e.key === 'Enter'){
+          if(inp.id === 'authUser' || inp.id === 'authPass' || inp.id === 'authFullName' || inp.id === 'authEmail') App.submitAuth();
+          else if(inp.id === 'authCode') App.submitVerify();
+          else if(inp.id.indexOf('act') === 0) App.addActivity();
+          else if(inp.id.indexOf('junk') === 0) App.addJunk();
+          else if(inp.id === 'routineInput') App.addRoutine();
+          else if(inp.id === 'goalText' || inp.id === 'goalDeadline') App.addGoal();
+          else if(inp.id === 'capInput') App.saveCapacity();
+          else if(inp.id.indexOf('weight') === 0) App.addWeight();
+        }
+      });
+    });
+  }
+
+  // ---------- public actions ----------
+  window.App = {
+    go: function(screen){ state.error=''; state.screen = screen; if(screen==='junk') state.junkYN=null; render(); },
+    logout: doLogout,
+    setAuthTab: function(tab){ state.authTab = tab; state.error=''; state.info=''; render(); },
+    submitAuth: function(){
+      var u = el('authUser').value, p = el('authPass').value;
+      if(state.authTab === 'login'){ doLogin(u,p); }
+      else{
+        var fullName = el('authFullName').value, email = el('authEmail').value;
+        doSignup(u, fullName, email, p);
+      }
+    },
+    submitVerify: function(){
+      var code = el('authCode').value.trim();
+      if(!code){ state.error = 'Enter the code from your email.'; render(); return; }
+      doVerify(code);
+    },
+    resendCode: function(){ doResendCode(); },
+    setYN: function(v){ state.junkYN = v; render(); },
+
+    addActivity: async function(){
+      var date = el('actDate').value.trim() || todayISO();
+      var type = el('actType').value;
+      var detail = el('actDetail').value.trim();
+      var duration = el('actDuration').value;
+      if(!detail){ state.error = 'Add a short detail for this workout.'; render(); return; }
+      var durNum = parseFloat(duration);
+      if(!duration || durNum <= 0){ state.error = 'Enter a duration in hours.'; render(); return; }
+      if(durNum > MAX_HOURS){ state.error = 'Max '+MAX_HOURS+' hours allowed per workout entry.'; render(); return; }
+      var pts = activityPoints(duration);
+      var entry = {date: date, type: type, detail: detail, duration: duration, points: pts};
+      state.activities.push(entry);
+      await saveUserData(state.user, 'activities', state.activities);
+      await addPoints(state.user, pts);
+      computeStreaks();
+      state.error = '';
+      render();
+      showToast('Workout saved successfully');
+    },
+
+    addJunk: async function(){
+      var date = el('junkDate').value.trim() || todayISO();
+      var food = el('junkFood').value.trim();
+      if(!food){ state.error = 'Enter the food name.'; render(); return; }
+      if(!state.junkYN){ state.error = 'Select Yes or No.'; render(); return; }
+      var pts = junkPoints(state.junkYN);
+      var entry = {date: date, food: food, had: state.junkYN, points: pts};
+      state.junk.push(entry);
+      await saveUserData(state.user, 'junk', state.junk);
+      await addPoints(state.user, pts);
+      computeStreaks();
+      state.junkYN = null;
+      state.error = '';
+      render();
+      showToast('Food entry saved successfully');
+    },
+
+    shiftMonth: function(dir){
+      state.calMonth += dir;
+      if(state.calMonth < 0){ state.calMonth = 11; state.calYear--; }
+      if(state.calMonth > 11){ state.calMonth = 0; state.calYear++; }
+      render();
+    },
+    shiftAnaMonth: function(dir){
+      state.anaMonth += dir;
+      if(state.anaMonth < 0){ state.anaMonth = 11; state.anaYear--; }
+      if(state.anaMonth > 11){ state.anaMonth = 0; state.anaYear++; }
+      render();
+    },
+
+    addRoutine: async function(){
+      var input = el('routineInput');
+      var name = input.value.trim();
+      if(!name) return;
+      state.routine.push({id: genId(), name: name});
+      await saveUserData(state.user, 'routine', state.routine);
+      render();
+    },
+    removeRoutine: async function(id){
+      state.routine = state.routine.filter(function(r){ return r.id !== id; });
+      await saveUserData(state.user, 'routine', state.routine);
+      render();
+    },
+    toggleRoutine: async function(id){
+      var d = todayISO();
+      if(!state.routineLog[d]) state.routineLog[d] = {};
+      state.routineLog[d][id] = !state.routineLog[d][id];
+      await saveUserData(state.user, 'routineLog', state.routineLog);
+      render();
+    },
+
+    addGoal: async function(){
+      var text = el('goalText').value.trim();
+      var deadline = el('goalDeadline').value.trim();
+      if(!text){ state.error = 'Enter a goal.'; render(); return; }
+      if(!deadline){ state.error = 'Enter a deadline date.'; render(); return; }
+      state.goals.push({id: genId(), text: text, deadline: deadline, done: false});
+      await saveUserData(state.user, 'goals', state.goals);
+      state.error = '';
+      render();
+      showToast('Goal saved successfully');
+    },
+    toggleGoal: async function(id){
+      state.goals = state.goals.map(function(g){
+        if(g.id === id) g.done = !g.done;
+        return g;
+      });
+      await saveUserData(state.user, 'goals', state.goals);
+      render();
+    },
+    removeGoal: async function(id){
+      state.goals = state.goals.filter(function(g){ return g.id !== id; });
+      await saveUserData(state.user, 'goals', state.goals);
+      render();
+    },
+
+    toggleReminders: async function(){
+      if(!state.remindersOn){
+        if(!('Notification' in window)){ alert('Notifications are not supported in this browser.'); return; }
+        var perm = await Notification.requestPermission();
+        if(perm !== 'granted'){ alert('Notification permission was not granted.'); return; }
+        state.remindersOn = true;
+        scheduleReminder();
+      } else {
+        state.remindersOn = false;
+        if(reminderTimer) clearTimeout(reminderTimer);
+      }
+      await saveSettings();
+      render();
+    },
+
+    addBottle: async function(delta){
+      var cap = parseFloat(state.bottleCapacity);
+      if(!cap){ App.go('water'); return; }
+      var d = todayISO();
+      var entry = state.water.find(function(w){ return w.date === d; });
+      if(!entry){ entry = {date: d, bottles: 0}; state.water.push(entry); }
+      entry.bottles = Math.max(0, entry.bottles + delta);
+      await saveUserData(state.user, 'water', state.water);
+      render();
+    },
+    saveCapacity: async function(){
+      var v = el('capInput').value;
+      var num = parseFloat(v);
+      if(!v || num <= 0){ state.error = 'Enter a valid bottle size in liters.'; render(); return; }
+      state.bottleCapacity = v;
+      await saveSettings();
+      state.error = '';
+      render();
+    },
+
+    addWeight: async function(){
+      var date = el('weightDate').value.trim() || todayISO();
+      var val = parseFloat(el('weightValue').value);
+      if(!val || val <= 0){ state.error = 'Enter a valid weight in kg.'; render(); return; }
+      state.weight = state.weight.filter(function(w){ return w.date !== date; });
+      state.weight.push({date: date, weight: val});
+      await saveUserData(state.user, 'weight', state.weight);
+      state.error = '';
+      render();
+    },
+
+    calcCalories: function(){
+      var age = parseFloat(el('calAge').value);
+      var sex = el('calSex').value;
+      var weight = parseFloat(el('calWeight').value);
+      var height = parseFloat(el('calHeight').value);
+      var activity = parseFloat(el('calActivity').value);
+      if(!age || !weight || !height){ state.error = 'Fill in age, weight, and height.'; render(); return; }
+      var bmr = sex === 'male'
+        ? (10*weight + 6.25*height - 5*age + 5)
+        : (10*weight + 6.25*height - 5*age - 161);
+      var tdee = bmr * activity;
+      state.error = '';
+      render();
+      el('calResult').innerHTML =
+        '<div class="stat-row" style="margin-top:14px">'+
+          '<div class="stat-box"><div class="n">'+Math.round(bmr)+'</div><div class="l">BMR (kcal)</div></div>'+
+          '<div class="stat-box"><div class="n gold">'+Math.round(tdee)+'</div><div class="l">Maintenance (kcal)</div></div>'+
+        '</div>'+
+        '<div class="stat-row" style="margin-top:10px">'+
+          '<div class="stat-box"><div class="n red">'+Math.round(tdee-500)+'</div><div class="l">Weight Loss</div></div>'+
+          '<div class="stat-box"><div class="n green">'+Math.round(tdee+500)+'</div><div class="l">Weight Gain</div></div>'+
+        '</div>';
+    }
+  };
+
+  // ---------- boot ----------
+  var SPLASH_MIN_MS = 1400;
+  var splashStart = Date.now();
+  function hideSplash(){
+    var elapsed = Date.now() - splashStart;
+    var wait = Math.max(0, SPLASH_MIN_MS - elapsed);
+    setTimeout(function(){
+      var s = document.getElementById('splash');
+      if(s){ s.classList.add('hide'); setTimeout(function(){ if(s.parentNode) s.parentNode.removeChild(s); }, 550); }
+    }, wait);
+  }
+  async function boot(){
+    try{
+      var token = getToken();
+      if(token){
+        var res = await apiFetch('/auth/me');
+        await afterLogin(res.user.username);
+      } else {
+        state.screen = 'login';
+        render();
+      }
+    }catch(e){
+      setToken(null);
+      state.screen = 'login';
+      render();
+    }
+  }
+  setTimeout(function(){
+    if(!document.querySelector('.card') && !document.querySelector('.login-wrap')){
+      state.screen = 'login';
+      render();
+    }
+  }, 4000);
+  boot().then(hideSplash).catch(hideSplash);
+
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', function(){
+      navigator.serviceWorker.register('service-worker.js').catch(function(){});
+    });
+  }
+})();
+</script>
+</body>
+</html>
